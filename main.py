@@ -16,8 +16,8 @@ class HRISubtask(Tk.Frame):
         self.initialize()
 
     def bcolorchange(self,x):
-        answer = self.but[x].config('bg')[-1]
-        if answer == "blue":
+        currColor = self.but[x].config('bg')[-1]
+        if currColor == "blue":
             self.but[x].configure(bg="red")
         else:
             self.but[x].configure(bg="blue")
@@ -85,15 +85,18 @@ class HRISubtask(Tk.Frame):
         self.chosenFiles, self.correctAnswers = self.choosefiles()
         self.do_buttons(self.chosenFiles)
 
-        vartext = "Select "+self.currType.upper()+" Images"
+        vartext = "Select Images of: "
         self.label = Tk.Label(self.frame,text=vartext,width=20,font='Helvetica 8 bold')
         self.label.grid(row=4,column=2)
 
-        self.label2 = Tk.Label(self.frame,text="then click NEXT")
-        self.label2.grid(row=5,column=2)
+        self.labelType = Tk.Label(self.frame,text=self.currType.upper(),width=8, font='Helvetica 16 bold')
+        self.labelType.grid(row=5,column=2)
 
-        self.nextbut = Tk.Button(self.frame,text="NEXT")
-        self.nextbut.grid(row=6, column=2)
+        self.label2 = Tk.Label(self.frame,text="then click NEXT")
+        self.label2.grid(row=6,column=2)
+
+        self.nextbut = Tk.Button(self.frame,text="NEXT",font = 'Helvetica 10 bold')
+        self.nextbut.grid(row=7, column=2)
         self.nextbut.bind('<Button-1>', self.stopProg)
 
     def initialize(self):
@@ -137,7 +140,7 @@ class HRIWait(Tk.Frame):
         self.label2 = Tk.Label(self.frame, text="Click NEXT when ready to continue")
         self.label2.grid(row=2, column=0)
 
-        self.nextbut = Tk.Button(self.frame,text="NEXT")
+        self.nextbut = Tk.Button(self.frame,text="NEXT",font = 'Helvetica 10 bold')
         self.nextbut.grid(row=3, column=0)
         self.nextbut.bind('<Button-1>', self.stopProg)
 
@@ -164,8 +167,8 @@ if __name__ == "__main__":
     # number of subtasks and time for each
     # all times are in seconds
     totalSubtasks = 2
-    subtaskTime = 5
-    waitTime = 5        # wait time between subtasks
+    subtaskTime = 10
+    waitTime = 2        # wait time between subtasks
 
     ###################################################
     # open scriptfile
