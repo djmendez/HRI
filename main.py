@@ -31,7 +31,7 @@ class HRISubtask(Tk.Frame):
 
             self.photo[button] = ImageTk.PhotoImage(Image.open(self.imgName))
 
-            self.but[button] = Tk.Button(self.frame, height=150, width=150, image=self.photo[button], bg="blue", command=lambda x=button: self.bcolorchange(x))
+            self.but[button] = Tk.Button(self.frame, height=150, width=150, borderwidth=30, image=self.photo[button], bg="blue", command=lambda x=button: self.bcolorchange(x))
             row, col = divmod(button,3)
             self.but[button].grid(row=row+1, column=col+1)
 
@@ -41,6 +41,7 @@ class HRISubtask(Tk.Frame):
 
         #compute and write to file the percentage accuracy for this screen
         correct = 0
+        incorrect = 0
         for x in range(0, 9):
             answer = self.but[x].config('bg')[-1]
             # number of correct answers minus a penalty for incorrect choices
@@ -48,11 +49,14 @@ class HRISubtask(Tk.Frame):
                 if (x + 1) in self.correctAnswers:
                     correct += 1
                 else:
-                    correct -= .5
-        perCorrect = max(0,correct / self.correctAnswers.__len__()) * 100
-        print("Percent Correct " + str(perCorrect))
+                    incorrect += 1
 
-        self.outputFile.write("%d, %d, %.1f\n" % (self.currentTask,self.screen, perCorrect))
+        maxCorrect = self.correctAnswers.__len__()
+        perCorrect = max(0, correct / maxCorrect) * 100
+
+        #print("Percent Correct " + str(perCorrect))
+
+        self.outputFile.write("%d, %d, %.1f, %d, %d, %d\n" % (self.currentTask,self.screen, perCorrect,correct,maxCorrect, incorrect))
 
         if elapsedTime < self.subtaskTime:
             self.screen += 1
@@ -77,7 +81,7 @@ class HRISubtask(Tk.Frame):
 
             #print ("choosing "+chosenfile)
             chosenFiles.append("images/"+type+"/"+chosenfile)
-        print (correctAnswers)
+        #print (correctAnswers)
         return chosenFiles,correctAnswers
 
     def typeselect(self):
@@ -104,7 +108,7 @@ class HRISubtask(Tk.Frame):
         self.parent.grid_rowconfigure(1, pad=20, weight=1)
         self.parent.grid_columnconfigure(1, pad=20, weight=1)
 
-        self.parent.geometry('480x600+700+250')
+        self.parent.geometry('640x800+600+100')
         self.parent.resizable(False,False)
 
         self.frame = Tk.Frame(self.parent)
@@ -161,6 +165,85 @@ class HRIWait(Tk.Frame):
         #start first screen
         self.typeselect()
 
+# Final Survey
+class HRISurvey(Tk.Frame):
+    def __init__(self, parent,outputFile,gqsQuestions):
+        Tk.Frame.__init__(self, parent)
+        self.parent = parent
+        self.outputFile = outputFile
+        self.gqsQuestions = gqsQuestions
+        self.initialize()
+
+    def stopProg(self, e):
+        for x in range (0,self.var.__len__()-1):
+            self.outputFile.write("%d,%d\n" % (x+1,self.var[x].get()))
+
+        self.parent.destroy()
+
+    def typeselect(self):
+        vartext = "Please answer each of these questions"
+
+        # Frame for Title
+        self.frame = Tk.Frame(self.parent)
+        self.frame.pack(fill=Tk.X, padx=5, pady=5)
+
+        self.label = Tk.Label(self.frame, text=vartext, font='Helvetica 8 bold')
+        self.label.grid(row=1, column=3)
+
+        # Frame for buttons
+        # Add the button group
+        self.label3 = Tk.Label(self.frame, text="Ask a survey question here")
+        self.label3.grid(row=3, column=0)
+        # self.label3 = Tk.Label(self.frame, text="More")
+        # self.label3.grid(row=3, column=1)
+        # self.label3 = Tk.Label(self.frame, text="Less")
+        # self.label3.grid(row=3, column=7)
+
+        self.frame2 = Tk.Frame(self.parent)
+        self.frame2.pack(fill=Tk.X, padx=5, pady=5)
+
+        questions = self.gqsQuestions.__len__()
+        self.var = [0 for x in range(questions+1)]
+        self.questionLabel = [0 for x in range(questions+1)]
+
+        #There will be 7 buttons on scale
+        self.but = [0 for x in range(8)]
+
+        for question, number in self.gqsQuestions:
+            #print (str(number)+question)
+            self.questionLabel[number-1] = Tk.Label(self.frame2, text = question+"\t\t\t")
+            self.questionLabel[number-1].grid(row=3+number,column=0)
+
+            self.var[number-1] = Tk.IntVar()
+            self.but[number] = [0 for x in range(1,9)]
+            for button in range(1,8):
+                self.but[number][button] = Tk.Radiobutton(self.frame2,text=str(button),value=button,variable=self.var[number-1])
+                self.but[number][button].grid(row=3+number,column=button+1)
+
+        # Frame for clicking Next
+        self.frame3 = Tk.Frame(self.parent)
+        self.frame3.pack(fill=Tk.X, padx=5, pady=5)
+        self.label2 = Tk.Label(self.frame3, text="Click NEXT when ready to continue",font='Helvetica 10 bold')
+        self.label2.grid(row=2+7, column=3)
+        self.nextbut = Tk.Button(self.frame3, text="NEXT", font='Helvetica 10 bold')
+        self.nextbut.grid(row=3+7, column=3)
+        self.nextbut.bind('<Button-1>', self.stopProg)
+
+    def initialize(self):
+
+
+        self.parent.title("EVALUATION: SURVEY")
+        self.parent.grid_rowconfigure(1, weight=1)
+        self.parent.grid_columnconfigure(1, weight=1)
+
+        self.parent.geometry('800x500+500+450')
+        self.parent.resizable(False, False)
+
+
+
+        # start first screen
+        self.typeselect()
+
 # Start the main program here               
 if __name__ == "__main__":
     ##### CONTROL APP HERE ###########################
@@ -170,7 +253,17 @@ if __name__ == "__main__":
     subtaskTime = 10
     waitTime = 2        # wait time between subtasks
 
-    ###################################################
+    # Questions for survey
+    gqsQuestions = [
+        ("How would you rate the robot's intelligence 1?", 1),
+        ("How would you rate the robot's intelligence 2?", 2),
+        ("How would you rate the robot's intelligence 3?", 3),
+        ("How would you rate the robot's intelligence 4?", 4),
+        ("How would you rate the robot's intelligence 5?", 5),
+        ("How would you rate the robot's intelligence 6?", 6)
+    ]
+
+    ##################################################
     # open scriptfile
     scriptFile = open("script.csv")
     scriptReader = csv.reader(scriptFile)
@@ -189,6 +282,10 @@ if __name__ == "__main__":
             root = Tk.Tk()
             app = HRIWait(root,waitTime)
             root.mainloop()
+
+    root = Tk.Tk()
+    app = HRISurvey(root,outputFile,gqsQuestions)
+    root.mainloop()
 
     outputFile.close()
     scriptFile.close()
