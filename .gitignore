@@ -8,3 +8,5 @@ main - rec = working\.py
 venv/
 
 images/
+
+subjectSurvey\.txt

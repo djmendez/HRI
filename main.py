@@ -176,25 +176,31 @@ class HRISurvey(Tk.Frame):
         self.initialize()
 
     def stopProg(self, e):
+        # Check that all questions were answered
+        allChecked = True
         for x in range (0,self.var.__len__()-1):
-            self.outputFile.write("%d" % (self.var[x].get()))
-            #add commas except to last number
-            if (x < (self.var.__len__()-2)):
-                self.outputFile.write(",")
+            if (self.var[x].get() == 0):
+                allChecked = False
 
-        self.parent.destroy()
+        # If ALL answered, terminate
+        if allChecked:
+            for x in range (0,self.var.__len__()-1):
+                self.outputFile.write("%d" % (self.var[x].get()))
+                #add commas except to last number
+                if (x < (self.var.__len__()-2)):
+                    self.outputFile.write(",")
+
+            self.parent.destroy()
 
     def typeselect(self):
-        vartext = "Please answer each of these questions"
+        vartext = "Please answer ALL of these questions"
 
         # Frame for Title
         self.frame = Tk.Frame(self.parent)
         self.frame.pack(fill=Tk.X, padx=5, pady=5)
 
         self.label = Tk.Label(self.frame, text=vartext, font='Helvetica 14 bold')
-#        self.label.place(x=25, y=25, anchor="center")
         self.label.grid(row=1,column=3)
-#        self.frame.update()
 
         # Frame for buttons
         # Add the button group
@@ -230,10 +236,10 @@ class HRISurvey(Tk.Frame):
         # Frame for clicking Next
         self.frame3 = Tk.Frame(self.parent)
         self.frame3.pack(fill=Tk.X, padx=5, pady=5)
-        self.label2 = Tk.Label(self.frame3, text="Click NEXT when ready to continue",font='Helvetica 14 bold')
+        self.label2 = Tk.Label(self.frame3, text="Click DONE when finished",font='Helvetica 14 bold')
         self.label2.grid(row=2+7, column=3)
-        self.nextbut = Tk.Button(self.frame3, text="NEXT", font='Helvetica 14 bold')
-        self.nextbut.grid(row=3+7, column=5)
+        self.nextbut = Tk.Button(self.frame3, text="DONE", font='Helvetica 14 bold')
+        self.nextbut.grid(row=3+7, column=4)
         self.nextbut.bind('<Button-1>', self.stopProg)
 
     def initialize(self):
@@ -243,7 +249,6 @@ class HRISurvey(Tk.Frame):
 
         geometry = '800x%d+500+450' % (self.questions*70)
 
-        print(geometry)
         self.parent.geometry(geometry)
         self.parent.resizable(False, False)
 
@@ -253,13 +258,14 @@ class HRISurvey(Tk.Frame):
 # Start the main program here               
 if __name__ == "__main__":
     ##### CONTROL APP HERE ###########################
-    # number of subtasks and time for each
     # all times are in seconds
+
+    # number of subtasks and time for each
     totalSubtasks = 2
     subtaskTime = 10
-    waitTime = 2        # wait time between subtasks
+    waitTime = 2        # wait period time between subtasks
 
-    # Questions for survey
+    # Questions for survey - more can be added / deleted
     gqsQuestions = [
         ("How would you rate the robot's intelligence 1?"),
         ("How would you rate the robot's intelligence 2?"),
