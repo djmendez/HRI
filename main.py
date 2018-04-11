@@ -172,11 +172,15 @@ class HRISurvey(Tk.Frame):
         self.parent = parent
         self.outputFile = outputFile
         self.gqsQuestions = gqsQuestions
+        self.questions = self.gqsQuestions.__len__()
         self.initialize()
 
     def stopProg(self, e):
         for x in range (0,self.var.__len__()-1):
-            self.outputFile.write("%d,%d\n" % (x+1,self.var[x].get()))
+            self.outputFile.write("%d" % (self.var[x].get()))
+            #add commas except to last number
+            if (x < (self.var.__len__()-2)):
+                self.outputFile.write(",")
 
         self.parent.destroy()
 
@@ -187,13 +191,13 @@ class HRISurvey(Tk.Frame):
         self.frame = Tk.Frame(self.parent)
         self.frame.pack(fill=Tk.X, padx=5, pady=5)
 
-        self.label = Tk.Label(self.frame, text=vartext, font='Helvetica 8 bold')
-        self.label.grid(row=1, column=3)
+        self.label = Tk.Label(self.frame, text=vartext, font='Helvetica 14 bold')
+#        self.label.place(x=25, y=25, anchor="center")
+        self.label.grid(row=1,column=3)
+#        self.frame.update()
 
         # Frame for buttons
         # Add the button group
-        self.label3 = Tk.Label(self.frame, text="Ask a survey question here")
-        self.label3.grid(row=3, column=0)
         # self.label3 = Tk.Label(self.frame, text="More")
         # self.label3.grid(row=3, column=1)
         # self.label3 = Tk.Label(self.frame, text="Less")
@@ -202,44 +206,46 @@ class HRISurvey(Tk.Frame):
         self.frame2 = Tk.Frame(self.parent)
         self.frame2.pack(fill=Tk.X, padx=5, pady=5)
 
-        questions = self.gqsQuestions.__len__()
-        self.var = [0 for x in range(questions+1)]
-        self.questionLabel = [0 for x in range(questions+1)]
+
+        self.var = [0 for x in range(self.questions+1)]
+        self.questionLabel = [0 for x in range(self.questions+1)]
 
         #There will be 7 buttons on scale
         self.but = [0 for x in range(8)]
+        number = 0
 
-        for question, number in self.gqsQuestions:
+        for question in self.gqsQuestions:
             #print (str(number)+question)
-            self.questionLabel[number-1] = Tk.Label(self.frame2, text = question+"\t\t\t")
-            self.questionLabel[number-1].grid(row=3+number,column=0)
+            self.questionLabel[number] = Tk.Label(self.frame2, text = question+"\t\t\t")
+            self.questionLabel[number].grid(row=3+number,column=0)
 
-            self.var[number-1] = Tk.IntVar()
+            self.var[number] = Tk.IntVar()
             self.but[number] = [0 for x in range(1,9)]
             for button in range(1,8):
-                self.but[number][button] = Tk.Radiobutton(self.frame2,text=str(button),value=button,variable=self.var[number-1])
+                self.but[number][button] = Tk.Radiobutton(self.frame2,text=str(button),value=button,variable=self.var[number])
                 self.but[number][button].grid(row=3+number,column=button+1)
+
+            number += 1
 
         # Frame for clicking Next
         self.frame3 = Tk.Frame(self.parent)
         self.frame3.pack(fill=Tk.X, padx=5, pady=5)
-        self.label2 = Tk.Label(self.frame3, text="Click NEXT when ready to continue",font='Helvetica 10 bold')
+        self.label2 = Tk.Label(self.frame3, text="Click NEXT when ready to continue",font='Helvetica 14 bold')
         self.label2.grid(row=2+7, column=3)
-        self.nextbut = Tk.Button(self.frame3, text="NEXT", font='Helvetica 10 bold')
-        self.nextbut.grid(row=3+7, column=3)
+        self.nextbut = Tk.Button(self.frame3, text="NEXT", font='Helvetica 14 bold')
+        self.nextbut.grid(row=3+7, column=5)
         self.nextbut.bind('<Button-1>', self.stopProg)
 
     def initialize(self):
-
-
         self.parent.title("EVALUATION: SURVEY")
         self.parent.grid_rowconfigure(1, weight=1)
         self.parent.grid_columnconfigure(1, weight=1)
 
-        self.parent.geometry('800x500+500+450')
+        geometry = '800x%d+500+450' % (self.questions*70)
+
+        print(geometry)
+        self.parent.geometry(geometry)
         self.parent.resizable(False, False)
-
-
 
         # start first screen
         self.typeselect()
@@ -255,12 +261,12 @@ if __name__ == "__main__":
 
     # Questions for survey
     gqsQuestions = [
-        ("How would you rate the robot's intelligence 1?", 1),
-        ("How would you rate the robot's intelligence 2?", 2),
-        ("How would you rate the robot's intelligence 3?", 3),
-        ("How would you rate the robot's intelligence 4?", 4),
-        ("How would you rate the robot's intelligence 5?", 5),
-        ("How would you rate the robot's intelligence 6?", 6)
+        ("How would you rate the robot's intelligence 1?"),
+        ("How would you rate the robot's intelligence 2?"),
+        ("How would you rate the robot's intelligence 3?"),
+        ("How would you rate the robot's intelligence 4?"),
+        ("How would you rate the robot's intelligence 5?"),
+        ("How would you rate the robot's intelligence 6?")
     ]
 
     ##################################################
@@ -270,22 +276,24 @@ if __name__ == "__main__":
 
     # open results file
     outputFile = open("subjectOutput.txt", "w")
+    surveyFile = open("subjectSurvey.txt","w")
 
-    for task in range(1,totalSubtasks+1):
-        #do subtask
-        root = Tk.Tk()
-        app = HRISubtask(root, outputFile, scriptReader, task, subtaskTime)
-        root.mainloop()
-
-        #wait between subtasks
-        if task < totalSubtasks:    # No need to wait after last subtask
-            root = Tk.Tk()
-            app = HRIWait(root,waitTime)
-            root.mainloop()
+    # for task in range(1,totalSubtasks+1):
+    #     #do subtask
+    #     root = Tk.Tk()
+    #     app = HRISubtask(root, outputFile, scriptReader, task, subtaskTime)
+    #     root.mainloop()
+    #
+    #     #wait between subtasks
+    #     if task < totalSubtasks:    # No need to wait after last subtask
+    #         root = Tk.Tk()
+    #         app = HRIWait(root,waitTime)
+    #         root.mainloop()
 
     root = Tk.Tk()
-    app = HRISurvey(root,outputFile,gqsQuestions)
+    app = HRISurvey(root,surveyFile,gqsQuestions)
     root.mainloop()
 
     outputFile.close()
     scriptFile.close()
+    surveyFile.close()
